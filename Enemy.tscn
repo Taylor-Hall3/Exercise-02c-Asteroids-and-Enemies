@@ -1,0 +1,57 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Assets/enemy.png" type="Texture" id=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends KinematicBody2D
+
+var VP = Vector2.ZERO
+var direction = 0.0
+var dir_speed = 0.01
+var velocity = Vector2(2,0)
+
+var Bullets = null
+var Enemy_Bullet = preload(\"res://Enemy_Bullet/Enemy_Bullet.tscn\")
+
+var Explosion = preload(\"res://Explosion/Explosion_ship.tscn\")
+var Explosions = null
+
+func _physics_process(_delta):
+	direction += dir_speed
+	while direction > 2*PI:
+		direction -= 2*PI
+
+func die():
+	if Explosions == null:
+		Explosions = get_node_or_null(\"/root/Game/Explosions\")
+	if Explosions != null:
+		var explosion = Explosion.instance()
+		explosion.position = position
+		Explosions.add_child(explosion)
+	queue_free()
+
+
+func _on_Timer_timeout():
+	if Bullets == null:
+		Bullets = get_node(\"/root/Game/Bullets\")
+	if Bullets != null:
+		var bullet = Enemy_Bullet.instance()
+		bullet.position = position
+		bullet.rotation = direction
+		Bullets.add_child(bullet) 
+"
+
+[node name="KinematicBody2D" type="KinematicBody2D"]
+script = SubResource( 1 )
+
+[node name="Sprite" type="Sprite" parent="."]
+texture = ExtResource( 2 )
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PoolVector2Array( -1.44336, -17.0989, 34.2985, -21.2229, 9.55411, 0.772034, 26.0504, 25.5164, -0.0686646, 13.1442, -24.813, 25.5164, -15.1902, -0.602646, -27.5624, -30.8457 )
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.6
+autostart = true
+
+[connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
